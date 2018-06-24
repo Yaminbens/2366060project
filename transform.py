@@ -44,6 +44,7 @@ for f in files:
 print(np.median(mwidth))
 print(np.median(mheight))
 
+'''
 # plot widths and heights histograms
 import matplotlib.pyplot as plt
 
@@ -54,16 +55,41 @@ plt.show()
 plt.bar(heights.keys(), heights.values(), color='g')
 plt.ylim((0, 250))
 plt.show()
+'''
 
 
 
 
-size = [np.median(mwidth), np.median(mheight)]
+
+size = [int(np.median(mwidth)), int(np.median(mheight))]
+
+Xd = {}
+Yd = {}
 
 from PIL import Image
 
-for file in files:
+sfiles = os.listdir(SAVE_DIR)
+
+
+for file in sfiles:
     with open(IM_DIR+file, 'r+b') as f:
         with Image.open(f) as image:
             cover = image.resize(size)
+            if file[0:-3] not in Xd:
+                Xd.update({file[0:-3]: []})
+                Yd.update({file[0:-3]: []})
+            Xd[file[0:-3]].append(cover)
+            Yd[file[0:-3]].append(file[-1:])
             cover.save(SAVE_DIR+file, image.format)
+
+X = []
+Y = []
+
+print(cover.shape)
+
+for pic in Xd:
+   X.append(Xd[pic])
+   Y.append(Yd[pic])
+
+
+print(X)
