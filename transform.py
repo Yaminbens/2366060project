@@ -2,7 +2,7 @@ import os
 import cv2
 import numpy as np
 from PIL import Image
-
+ 
 def data_transform():
     IM_DIR = "project/shraded/"
     SAVE_DIR = "project/shraded_samesize/"
