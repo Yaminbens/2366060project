@@ -1,4 +1,3 @@
-from transform import getXy
 import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.layers import Dense, Dropout, Conv2D, BatchNormalization, MaxPool2D, Flatten, Concatenate, \
@@ -11,8 +10,10 @@ from keras.models import Model
 import pickle
 
 with open('data.pickle', 'rb') as handle:
-    (X,y) = pickle.load(handle)
+    (X, Y) = pickle.load(handle)
 
+Y = keras.utils.to_categorical(Y, 4)
+Y = np.reshape(Y, (Y.shape[0], 16))
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
 
 
@@ -31,15 +32,10 @@ def sinkhorn(A, n_iter=4):
     return A
 
 
-datagen = ImageDataGenerator(
-    rotation_range=10,  # randomly rotate images in the range (degrees, 0 to 180)
-    horizontal_flip=True)  # randomly flip images
-datagen.fit(X_train)
-
-
 # drop decay
 def schedule(epoch):
     return 0.1 * (0.5 ** (epoch // 50))
+
 
 lr_decay_drop_cb = LearningRateScheduler(schedule)
 sgd = keras.optimizers.SGD(lr=0.1, momentum=0.9, nesterov=True)
@@ -97,28 +93,32 @@ y = Dense(256, activation='relu', kernel_regularizer=regularizers.l2(weight_deca
 y = BatchNormalization()(y)
 final = Dense(16, activation='sigmoid', kernel_regularizer=regularizers.l2(weight_decay))(y)
 if sinkhorn_on:
-    final = Reshape((4,4))
+    final = Reshape((4, 4))(final)
     final = sinkhorn(final)
-    final = Reshape((16,1))
-
+    final = Reshape((16, 1))(final)
 
 model = Model([x0, x1, x2, x3], final)
 
-
-
-
 model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
 print(model.summary())
-#
-# datagen = data_generator(X_train, y_train, max_review_length, batch_size=128)
-# vdatagen = data_generator(X_test, y_test, max_review_length, batch_size=128)
-#
-# if train:
-#     model.fit_generator(generator=datagen,
-#                         steps_per_epoch=X_train.shape[0] // 128,
-#                         validation_data=vdatagen,
-#                         validation_steps=X_test.shape[0] // 128,
-#                         epochs=100)
-#     model.save('mod_small_100.h5')
-# else:
-#     model = keras.models.load_model('mod_small_100.h5')
+
+
+def data_generator(X_train, y_train, batch_size=128):
+    while True:
+        idx = np.random.randint(0, X_train.shape[0], batch_size)
+        x_samples = X_train[idx,:]
+        x_samples = x_samples[:, :, :, :, np.newaxis]
+        x = [x_samples[:,0], x_samples[:,1], x_samples[:,2], x_samples[:,3]]
+        y = y_train[idx]
+        yield x, y
+
+
+datagen = data_generator(X_train, y_train, batch_size=128)
+vdatagen = data_generator(X_test, y_test, batch_size=128)
+
+model.fit_generator(generator=datagen,
+                    steps_per_epoch=X_train.shape[0] // 128,
+                    validation_data=vdatagen,
+                    validation_steps=X_test.shape[0] // 128,
+                    epochs=100)
+model.save('mod.h5')
