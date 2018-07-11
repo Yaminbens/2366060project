@@ -1,4 +1,4 @@
-from transform import data_transform
+from transform import getXy
 import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.layers import Dense, Dropout, Conv2D, BatchNormalization, MaxPool2D, Flatten, Concatenate, \
@@ -8,8 +8,10 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import LearningRateScheduler
 from keras import regularizers
 from keras.models import Model
+import pickle
 
-X, Y = data_transform()
+with open('data.pickle', 'rb') as handle:
+    (X,y) = pickle.load(handle)
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
 

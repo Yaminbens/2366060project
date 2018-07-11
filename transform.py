@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 from shrader_public import shrader
-
+import pickle
 
 def augment():
     IM_DIR = "project/images/"
@@ -106,6 +106,9 @@ def data_transform():
     return np.array(X), np.array(Y)
 
 def data_prep():
-    augment()
-    shrader()
+    # augment()
+    # shrader()
     X, y = data_transform()
+    with open('data.pickle', 'wb') as handle:
+        pickle.dump((X, y), handle)
+
