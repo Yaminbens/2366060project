@@ -105,7 +105,7 @@ def data_transform():
 
     return np.array(X), np.array(Y)
 
-if __name__ == '__main__':
+def data_prep():
     augment()
     shrader()
     X, y = data_transform()
