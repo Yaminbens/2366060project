@@ -111,7 +111,7 @@ def data_prep():
     X, Y = data_transform()
 
     with open('data.pickle', 'wb') as handle:
-        pickle.dump((X, y), handle)
+        pickle.dump((X, Y), handle)
 
 if __name__ == '__main__':
     data_prep()
