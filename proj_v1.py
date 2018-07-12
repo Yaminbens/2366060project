@@ -32,6 +32,29 @@ def sinkhorn(A, n_iter=4):
         A /= A.sum(dim=2, keepdim=True)
     return A
 
+def sinkhorn_max(X):
+    xshape = (int(np.sqrt(len(X))),int(np.sqrt(len(X))))
+    A = X.reshape(xshape)
+    print(A.shape)
+
+    for i in range(n_iter):
+        A = A / np.sum(A, axis=0)
+        A = A / np.sum(A, axis=1)[:, np.newaxis]
+        print(A)
+
+    indices = []
+
+    for i in range(int(np.sqrt(len(X)))):
+        ind = np.argmax(A)
+        indices.append(ind)
+        mn = np.unravel_index(ind,(xshape))
+        A[mn[0],:] = 0
+        A[:,mn[1]] = 0
+
+    Y01 = np.zeros(X.shape)
+    Y01[indices] = 1
+    return Y01
+
 
 sinkhorn_on = False
 kernel_size = (3, 3)
