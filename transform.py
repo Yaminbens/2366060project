@@ -20,17 +20,17 @@ def augment():
                 new_im_x = image.transpose(Image.FLIP_LEFT_RIGHT)
                 new_im_y = image.transpose(Image.FLIP_TOP_BOTTOM)
                 new_im_xy = image.transpose(Image.FLIP_TOP_BOTTOM).transpose(Image.FLIP_LEFT_RIGHT)
-                new_im_9 = image.transpose(Image.ROTATE_90)
-                new_im_18 = image.transpose(Image.ROTATE_180)
-                new_im_27 = image.transpose(Image.ROTATE_270)
+                # new_im_9 = image.transpose(Image.ROTATE_90)
+                # new_im_18 = image.transpose(Image.ROTATE_180)
+                # new_im_27 = image.transpose(Image.ROTATE_270)
 
 
                 new_im_x.save(SAVE_DIR + file[0:-5] + 'x' + file[-5:], image.format)
                 new_im_y.save(SAVE_DIR + file[0:-5] + 'y' + file[-5:], image.format)
                 new_im_xy.save(SAVE_DIR + file[0:-5] + 'xy' + file[-5:], image.format)
-                new_im_9.save(SAVE_DIR + file[0:-5] + '9' + file[-5:], image.format)
-                new_im_18.save(SAVE_DIR + file[0:-5] + '18' + file[-5:], image.format)
-                new_im_27.save(SAVE_DIR + file[0:-5] + '27' + file[-5:], image.format)
+                # new_im_9.save(SAVE_DIR + file[0:-5] + '9' + file[-5:], image.format)
+                # new_im_18.save(SAVE_DIR + file[0:-5] + '18' + file[-5:], image.format)
+                # new_im_27.save(SAVE_DIR + file[0:-5] + '27' + file[-5:], image.format)
 
 
 
@@ -108,7 +108,10 @@ def data_transform():
 def data_prep():
     # augment()
     # shrader()
-    X, y = data_transform()
+    X, Y = data_transform()
+
     with open('data.pickle', 'wb') as handle:
         pickle.dump((X, y), handle)
 
+if __name__ == '__main__':
+    data_prep()
