@@ -14,6 +14,9 @@ with open('data.pickle', 'rb') as handle:
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
 
+with open('vdata.pickle', 'wb') as handle:
+    pickle.dump((X_test, y_test), handle)
+
 
 ## TODO: when finished, train with all dataset!!
 
@@ -96,7 +99,7 @@ initial_lr = 0.01
 
 # drop decay
 def schedule(epoch):
-    return initial_lr * (0.5 ** (epoch // 50))
+    return initial_lr * (0.1 ** (epoch // 20))
 
 
 lr_decay_drop_cb = LearningRateScheduler(schedule)
@@ -144,6 +147,6 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
-model.save('mod_50_0.3Drop.h5')
+model.save('mod_50_0.3Drop_lrdrop20ep.h5')
 
 test_preds = model.predict_generator(generator=vdatagen)
