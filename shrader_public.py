@@ -7,7 +7,7 @@ def shrader():
     Xb = []
     y = []
 
-    IM_DIR = "project/imagesAug/"
+    IM_DIR = "project/allAug/"
     OUTPUT_DIR = "project/shraded/"
     files = os.listdir(IM_DIR)
 
