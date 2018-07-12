@@ -20,36 +20,22 @@ with open('vdata.pickle', 'wb') as handle:
 
 ## TODO: when finished, train with all dataset!!
 
-def sinkhorn(A, n_iter=4):
-    """
-    Sinkhorn iterations.
-
-    :param A: (n_batches, d, d) tensor
-    :param n_iter: Number of iterations.
-    """
-    for i in range(n_iter):
-        A /= A.sum(dim=1, keepdim=True)
-        A /= A.sum(dim=2, keepdim=True)
-    return A
-
-def sinkhorn_max(X):
-    xshape = (int(np.sqrt(len(X))),int(np.sqrt(len(X))))
+def sinkhorn_max(X, n_iter=10):
+    xshape = (int(np.sqrt(len(X))), int(np.sqrt(len(X))))
     A = X.reshape(xshape)
-    print(A.shape)
 
     for i in range(n_iter):
         A = A / np.sum(A, axis=0)
         A = A / np.sum(A, axis=1)[:, np.newaxis]
-        print(A)
 
     indices = []
 
     for i in range(int(np.sqrt(len(X)))):
         ind = np.argmax(A)
         indices.append(ind)
-        mn = np.unravel_index(ind,(xshape))
-        A[mn[0],:] = 0
-        A[:,mn[1]] = 0
+        mn = np.unravel_index(ind, (xshape))
+        A[mn[0], :] = 0
+        A[:, mn[1]] = 0
 
     Y01 = np.zeros(X.shape)
     Y01[indices] = 1
@@ -112,7 +98,7 @@ final = Dense(16, activation='sigmoid', kernel_regularizer=regularizers.l2(weigh
               kernel_initializer='glorot_uniform')(y)
 if sinkhorn_on:
     final = Reshape((4, 4))(final)
-    final = Lambda(sinkhorn)(final)
+    final = Lambda(sinkhorn_max)(final)
     final = Reshape((16, 1))(final)
 
 model = Model([x0, x1, x2, x3], final)
@@ -134,12 +120,15 @@ print(model.summary())
 
 def data_generator(X_train, y_train, batch_size=128):
     while True:
+        random_perm = np.array([np.random.permutation(4) for _ in range(batch_size)])
         idx = np.random.randint(0, X_train.shape[0], batch_size)
         x_samples = X_train[idx, :]
-        x_samples = x_samples[:, :, :, :, np.newaxis]
+        x_samples_rnd_perm = np.array([x_samples[i][random_perm[i]] for i in range(batch_size)])
+        x_samples = x_samples_rnd_perm[:, :, :, :, np.newaxis]
         x = [x_samples[:, 0], x_samples[:, 1], x_samples[:, 2], x_samples[:, 3]]
         y = y_train[idx]
-        y = keras.utils.to_categorical(y, 4)
+        y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
+        y = keras.utils.to_categorical(y_rnd_perm, 4)
         y = np.reshape(y, (y.shape[0], 16))
         yield x, y
 
@@ -151,7 +140,7 @@ history = model.fit_generator(generator=datagen,
                               steps_per_epoch=X_train.shape[0] // 64,
                               validation_data=vdatagen,
                               validation_steps=X_test.shape[0] // 64,
-                              epochs=50)
+                              epochs=10)
 
 # summarize history for accuracy
 plt.plot(history.history['acc'])
