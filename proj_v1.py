@@ -17,6 +17,11 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
 with open('vdata.pickle', 'wb') as handle:
     pickle.dump((X_test, y_test), handle)
 
+image_shape = (X_train.shape[2], X_train.shape[3], 1)
+
+X = None
+Y = None
+
 
 ## TODO: when finished, train with all dataset!!
 
@@ -44,7 +49,6 @@ def sinkhorn_max(X, n_iter=10):
 
 sinkhorn_on = False
 kernel_size = (3, 3)
-image_shape = (X_train.shape[2], X_train.shape[3], 1)
 weight_decay = 0.005
 dropout = 0.3
 
@@ -78,6 +82,8 @@ x = Dense(128, activation='relu', kernel_regularizer=regularizers.l2(weight_deca
 out = BatchNormalization()(x)
 
 modelCNN = Model(img_input, out)
+print(modelCNN.summary())
+
 
 x0 = Input(shape=image_shape)
 x1 = Input(shape=image_shape)
@@ -101,6 +107,7 @@ if sinkhorn_on:
     final = Lambda(sinkhorn_max)(final)
     final = Reshape((16, 1))(final)
 
+
 model = Model([x0, x1, x2, x3], final)
 
 initial_lr = 0.01
@@ -108,7 +115,7 @@ initial_lr = 0.01
 
 # drop decay
 def schedule(epoch):
-    return initial_lr * (0.1 ** (epoch // 20))
+    return initial_lr * (0.1 ** (epoch // 30))
 
 
 lr_decay_drop_cb = LearningRateScheduler(schedule)
@@ -120,6 +127,7 @@ print(model.summary())
 
 def data_generator(X_train, y_train, batch_size=128):
     while True:
+
         random_perm = np.array([np.random.permutation(4) for _ in range(batch_size)])
         idx = np.random.randint(0, X_train.shape[0], batch_size)
         x_samples = X_train[idx, :]
@@ -140,7 +148,8 @@ history = model.fit_generator(generator=datagen,
                               steps_per_epoch=X_train.shape[0] // 64,
                               validation_data=vdatagen,
                               validation_steps=X_test.shape[0] // 64,
-                              epochs=10)
+                              epochs=50,
+                              callbacks=[lr_decay_drop_cb])
 
 # summarize history for accuracy
 plt.plot(history.history['acc'])
@@ -159,6 +168,5 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
-model.save('mod_10_0.3Drop_lrdrop20ep.h5')
+model.save('mod_50_0.3Drop_lrdrop20ep.h5')
 
-test_preds = model.predict_generator(generator=vdatagen)

@@ -10,7 +10,7 @@ K.clear_session()
 with open('vdata.pickle', 'rb') as handle:
     X_test, y_test = pickle.load(handle)
 
-model = load_model('mod_50_0.3Drop.h5')
+model = load_model('mod_50_0.3Drop_lrdrop20ep.h5')
 
 X_test = X_test[:, :, :, :, np.newaxis]
 x = [X_test[:, 0], X_test[:, 1], X_test[:, 2], X_test[:, 3]]
@@ -20,7 +20,7 @@ test_preds = np.reshape(test_preds, (test_preds.shape[0], 4, 4))
 test_preds = np.argmax(test_preds, axis=2)
 # test_preds = test_preds.squeeze()
 
-num_examples = 50
+num_examples = 15
 idx = np.random.randint(0, X_test.shape[0], num_examples)
 for i in idx:
     X_test1 = np.array(X_test[i])
