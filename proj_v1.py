@@ -127,7 +127,6 @@ print(model.summary())
 
 def data_generator(X_train, y_train, batch_size=128):
     while True:
-
         random_perm = np.array([np.random.permutation(4) for _ in range(batch_size)])
         idx = np.random.randint(0, X_train.shape[0], batch_size)
         x_samples = X_train[idx, :]
@@ -140,14 +139,15 @@ def data_generator(X_train, y_train, batch_size=128):
         y = np.reshape(y, (y.shape[0], 16))
         yield x, y
 
+batch_size = 128
 
-datagen = data_generator(X_train, y_train, batch_size=64)
-vdatagen = data_generator(X_test, y_test, batch_size=64)
+datagen = data_generator(X_train, y_train, batch_size=batch_size)
+vdatagen = data_generator(X_test, y_test, batch_size=batch_size)
 
 history = model.fit_generator(generator=datagen,
-                              steps_per_epoch=X_train.shape[0] // 64,
+                              steps_per_epoch=X_train.shape[0] // batch_size,
                               validation_data=vdatagen,
-                              validation_steps=X_test.shape[0] // 64,
+                              validation_steps=X_test.shape[0] // batch_size,
                               epochs=50,
                               callbacks=[lr_decay_drop_cb])
 
