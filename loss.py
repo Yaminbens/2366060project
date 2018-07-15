@@ -1,73 +1,57 @@
 import numpy as np
 from keras import objectives
 from keras import backend as K
-from keras
+
+
 _EPSILON = K.epsilon()
+tiles = 2
+def _loss_tensor(X, y_pred, y_true, CL,CR, tiles=2):
+    X = K.permute_dimensions(X,(1,0,2,3))
 
-def _loss_tensor(X, y_pred, y_true, tiles):
-    X = X.transpose((1,0,2,3))
-    # y_pred = K.clip(y_pred, _EPSILON, 1.0-_EPSILON)
-    Xcs = K.reshape(X,(X.shape[0],X.shape[1],X.shape[1]*X.shape[2])) #reshape x as n columns
-    X_pred = K.dot(Xcs.T, y_pred) #replace column according to pred
-    X_pred = X_pred.reshape(X.shape[0],X.shape[-2]*tiles,X.shape[-1]*tiles) #reshape as matrix
+    Xcs = K.reshape(X,(X.shape[0],X.shape[1],X.shape[2]*X.shape[3])) #reshape x as n columns
+
+    X_pred = K.batch_dot(K.permute_dimensions(Xcs,(0,2,1)), y_pred) #replace column according to pred
+    X_pred = K.reshape(X_pred,(X.shape[0],X.shape[-2]*tiles,X.shape[-1]*tiles)) #reshape as matrix
     X_flip = K.reverse(K.reverse(X_pred, axes=0), axes=1)
-    CL = K.zeros(X.shape[-2] * tiles, X.shape[-2] * tiles)
-    CL[int(X.shape[-2]),int(X.shape[-2])] = 1
-    CL[int(X.shape[-2])+1, int(X.shape[-2])+1] = 1
-    CR = K.zeros(X.shape[-1] * tiles, X.shape[-1] * tiles)
-    CR[int(X.shape[-1]), int(X.shape[-1])] = 1
-    CR[int(X.shape[-1]) + 1, int(X.shape[-1]) + 1] = 1
 
-    LX = K.dot(CL, K.X_pred) + K.dot((X_pred, CR))
-    RX = K.dot(CL, K.X_flip) + K.dot((X_flip, CR))
-    dissimilarity = K.sum(K.sum(K.square(LX-RX), axis=1), axis=0)
+    LX = K.permute_dimensions(K.dot(CL, X_pred),(1,0,2)) + K.dot(X_pred, CR)
+    RX =K.permute_dimensions(K.dot(CL, X_flip),(1,0,2)) + K.dot(X_flip, CR)
+    dissimilarity = K.sum(K.sum(K.square(LX-RX), axis=2), axis=1)
 
     return  K.categorical_crossentropy(y_pred, y_true) + dissimilarity
 
 
-def _loss_np(X, y_pred, y_true, tiles):
-    X = X.transpose((1,0,2,3))
-    # y_pred = np.clip(y_pred, _EPSILON, 1.0 - _EPSILON)
-    Xcs = np.reshape(X, (X.shape[0], X.shape[1], X.shape[1] * X.shape[2]))  # reshape x as n columns
-    X_pred = np.dot(Xcs.T, y_pred)  # replace column according to pred
-    X_pred = X_pred.reshape(X.shape[0], X.shape[-2] * tiles, X.shape[-1] * tiles)  # reshape as matrix
-    X_flip = np.reverse(np.reverse(X_pred, axes=0), axes=1)
-    CL = np.zeros(X.shape[-2] * tiles, X.shape[-2] * tiles)
-    CL[int(X.shape[-2]), int(X.shape[-2])] = 1
-    CL[int(X.shape[-2]) + 1, int(X.shape[-2]) + 1] = 1
-    CR = np.zeros(X.shape[-1] * tiles, X.shape[-1] * tiles)
-    CR[int(X.shape[-1]), int(X.shape[-1])] = 1
-    CR[int(X.shape[-1]) + 1, int(X.shape[-1]) + 1] = 1
-
-    LX = np.dot(CL, np.X_pred) + np.dot((X_pred, CR))
-    RX = np.dot(CL, np.X_flip) + np.dot((X_flip, CR))
-    dissimilarity = np.sum(np.sum(np.square(LX - RX), axis=1), axis=0)
-
-    return K.categorical_crossentropy(y_pred, y_true) + dissimilarity
-
-def check_loss(_shape, tiles):
+def check_loss(_shape, tiles=2):
 
     if _shape == '3d':
-        shape = (1 ,4, 6, 7)
+        shapex = (4,1, 6, 7)
+        shapey = (1,4,4)
     elif _shape == '4d':
-        shape = (8, 4, 6, 7)
+        shapex = (4, 8, 6, 7)
+        shapey = (8,4,4)
 
+    CL = np.zeros((shapex[-2] * tiles, shapex[-2] * tiles))
+    CL[shapex[-2], shapex[-2]] = 1
+    CL[shapex[-2] - 1, shapex[-2] - 1] = 1
+    CR = np.zeros((shapex[-1] * tiles, shapex[-1] * tiles))
+    CR[shapex[-1], shapex[-1]] = 1
+    CR[shapex[-1] - 1, shapex[-1] - 1] = 1
+    X = np.random.random(shapex)
+    y = np.random.random(shapey)
+    g = np.random.random(shapey)
 
-    X_a = np.random.random(shape)
-    y_b = np.random.random(shape)
+    out1 = K.eval(_loss_tensor(K.variable(X), K.variable(y),  K.variable(g), K.variable(CL), K.variable(CR)))
+    # out2 = _loss_np(X, y, g)
 
-    out1 = K.eval(_loss_tensor(K.variable(y_a), K.variable(y_b)))
-    out2 = _loss_np(y_a, y_b)
-
-    assert out1.shape == out2.shape
-    assert out1.shape == shape[:-1]
-    print(np.linalg.norm(out1))
-    print(np.linalg.norm(out2))
-    print(np.linalg.norm(out1-out2))
+    # assert out1.shape == out2.shape
+    # assert out1.shape == shapey[:-1]
+    # print(np.linalg.norm(out1))
+    # print(np.linalg.norm(out2))
+    # print(np.linalg.norm(out1-out2))
 
 
 def test_loss():
-    shape_list = ['2d', '3d', '4d', '5d']
+    shape_list = [ '4d']
     for _shape in shape_list:
         check_loss(_shape)
         print('======================')
