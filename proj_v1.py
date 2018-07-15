@@ -12,7 +12,22 @@ import matplotlib.pyplot as plt
 with open('data.pickle', 'rb') as handle:
     X, Y = pickle.load(handle)
 
+X = X.astype('float32') / 255
+
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
+
+
+# data normalization
+# normalize - samplewise for CNN and featurewis for fullyconnected
+def normalize(X_train, X_test):
+    mean = np.mean(X_train, axis=(0, 1, 2, 3))
+    std = np.std(X_train, axis=(0, 1, 2, 3))
+    X_train = (X_train - mean) / (std + 1e-7)
+    X_test = (X_test - mean) / (std + 1e-7)
+    return X_train, X_test
+
+
+X_train, X_test = normalize(X_train, X_test)
 
 with open('vdata.pickle', 'wb') as handle:
     pickle.dump((X_test, y_test), handle)
@@ -84,7 +99,6 @@ out = BatchNormalization()(x)
 modelCNN = Model(img_input, out)
 print(modelCNN.summary())
 
-
 x0 = Input(shape=image_shape)
 x1 = Input(shape=image_shape)
 x2 = Input(shape=image_shape)
@@ -106,7 +120,6 @@ if sinkhorn_on:
     final = Reshape((4, 4))(final)
     final = Lambda(sinkhorn_max)(final)
     final = Reshape((16, 1))(final)
-
 
 model = Model([x0, x1, x2, x3], final)
 
@@ -139,6 +152,7 @@ def data_generator(X_train, y_train, batch_size=128):
         y = np.reshape(y, (y.shape[0], 16))
         yield x, y
 
+
 batch_size = 128
 
 datagen = data_generator(X_train, y_train, batch_size=batch_size)
@@ -169,4 +183,3 @@ plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
 model.save('mod_50_0.3Drop_lrdrop20ep.h5')
-

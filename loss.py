@@ -4,6 +4,7 @@ from keras import backend as K
 import pickle
 import matplotlib.pyplot as plt
 import keras
+from itertools import permutations
 
 _EPSILON = K.epsilon()
 tiles = 2
@@ -23,8 +24,9 @@ def _loss_tensor(X, y_pred, y_true, CL, CR, tiles=2):
     RX_y = K.permute_dimensions(K.dot(CL, X_flip_y), (1, 0, 2))
     LX_x = K.dot(X_pred, CR)
     RX_x = K.dot(X_flip_x, CR)
-    dissimilarity = K.mean(K.mean(K.square(LX_x - RX_x), axis=2), axis=1) + K.mean(K.mean(K.square(LX_y - RX_y), axis=2),
-                                                                                axis=1)
+    dissimilarity = K.mean(K.mean(K.square(LX_x - RX_x), axis=2), axis=1) + K.mean(
+        K.mean(K.square(LX_y - RX_y), axis=2),
+        axis=1)
 
     # return K.categorical_crossentropy(y_pred, y_true) + K.sum(dissimilarity)
     return K.mean(dissimilarity)
@@ -67,12 +69,78 @@ def test_loss():
         print('======================')
 
 
-if __name__ == '__main__':
+def plot_dissimilarity_table(X, Y):
+    shapex = X.shape
+    shapey = Y
+    npixels = 1
+    CL = np.zeros((shapex[-2] * tiles, shapex[-2] * tiles))
+    for i in range(shapex[-2] - npixels, shapex[-2] + npixels):
+        CL[i, i] = 1
+    CR = np.zeros((shapex[-1] * tiles, shapex[-1] * tiles))
+    for i in range(shapex[-2] - npixels, shapex[-2] + npixels):
+        CR[i, i] = 1
+
+    shape = np.array(X[0][0]).shape
+    total_data = []
+    for c, (x, y) in enumerate(zip(X, Y)):
+        if c > 7:
+            break
+        x_0123 = [np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)]
+        for ind, yind in enumerate(y.astype(int)):
+            x_0123[yind] = x[ind]
+        y = keras.utils.to_categorical(np.array([0, 1, 2, 3]), 4)
+        y = K.variable(y[np.newaxis, :, :])
+        print('Image #' + str(c))
+        new_data = []
+        for perm in permutations([0, 1, 2, 3]):
+            perm = np.array(perm).astype(int)
+            for ind, yind in enumerate(perm):
+                x_perm = [np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)]
+                x_perm[yind] = x_0123[ind]
+            x_perm = np.array(x_perm)
+            x_perm = K.variable(x_perm[:, np.newaxis, :, :])
+            perm = K.variable(keras.utils.to_categorical(perm)[np.newaxis, :, :])
+            # x_perm_1 = np.concatenate((x_perm[0], x_perm[1]), axis=1)
+            # x_perm_2 = np.concatenate((x_perm[2], x_perm[3]), axis=1)
+            # x_perm_img = np.concatenate((x_perm_1, x_perm_2), axis=0)
+            loss = _loss_tensor(x_perm, perm, y, K.variable(CL), K.variable(CR))
+            new_data.append(K.eval(loss))
+            # print(np.argmax(K.eval(perm), axis=2))
+            # print(K.eval(loss))
+        total_data.append(new_data)
+    total_data = np.array(total_data)
+
+    perms = [str(i) for i in permutations([0, 1, 2, 3])]
+    fig, ax = plt.subplots()
+    im = ax.imshow(total_data)
+
+    # Create colorbar
+    cbar = ax.figure.colorbar(im, ax=ax, **{})
+    cbar.ax.set_ylabel('Dissimilarity', rotation=-90, va="bottom")
 
 
+    # We want to show all ticks...
+    ax.set_xticks(np.arange(len(perms)))
+    # ... and label them with the respective list entries
+    ax.set_xticklabels(perms)
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    # for i in range(total_data.shape[0]):
+    #     for j in range(total_data.shape[1]):
+    #         text = ax.text(j, i, total_data[i, j],
+    #                        ha="center", va="center", color="w")
+
+    ax.set_title("dissimilarity as a function of permutation")
+    fig.tight_layout()
+    plt.show()
+
+def test_loss_and_imshow():
     with open('vdata.pickle', 'rb') as handle:
         X_test, y_test = pickle.load(handle)
-
 
     shapex = X_test.shape
     shapey = y_test
@@ -117,3 +185,9 @@ if __name__ == '__main__':
     fig.show()
     # X_rec[:,X_rec.shape[2]]
     # test_loss()
+
+
+if __name__ == '__main__':
+    with open('data.pickle', 'rb') as handle:
+        X, Y = pickle.load(handle)
+    plot_dissimilarity_table(X, Y)

@@ -81,7 +81,7 @@ def data_transform():
 
     # size = [int(np.median(mwidth)), int(np.median(mheight))]
 
-    size = [128, 96]
+    size = [128, 128]
 
     Xd = {}
     Yd = {}
