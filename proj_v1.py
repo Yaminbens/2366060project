@@ -159,6 +159,6 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
-model.save('mod_50_0.3Drop_lrdrop20ep.h5')
+model.save('mod_10_0.3Drop_lrdrop20ep.h5')
 
 test_preds = model.predict_generator(generator=vdatagen)

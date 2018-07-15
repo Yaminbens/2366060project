@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def augment():
     IM_DIR = "project/images/"
-    SAVE_DIR = "project/imagesAug/"
+    SAVE_DIR = "project/allAug/"
     # PIL.Image.FLIP_LEFT_RIGHT
 
     files = os.listdir(IM_DIR)
@@ -80,39 +80,37 @@ def data_transform():
     Xd = {}
     Yd = {}
 
-    testDir = 'project/testImg'
-    sfiles = os.listdir(testDir)
+    sfiles = os.listdir(IM_DIR)
     for file in sfiles:
         with open(IM_DIR + file, 'r+b') as f:
             with Image.open(f) as image:
                 cover = image.resize(size)
-                if file[0:-7] not in Xd:
-                    Xd.update({file[0:-7]: []})
-                    Yd.update({file[0:-7]: []})
-                Xd[file[0:-7]].append(np.array(cover))
-                Yd[file[0:-7]].append(file[-5:-4])
+                if file[0:-5] not in Xd:
+                    Xd.update({file[0:-5]: []})
+                    Yd.update({file[0:-5]: []})
+                Xd[file[0:-5]].append(np.array(cover))
+                Yd[file[0:-5]].append(file[-5:-4])
                 cover.save(SAVE_DIR + file, image.format)
 
     X = []
     Y = []
 
     for pic in Xd:
-        print(pic)
+        # print(pic)
         X.append(Xd[pic])
         Y.append(Yd[pic])
 
-        X_test = np.array(Xd[pic])
-        y_tmp = np.array(Yd[pic]).astype(int)
-        # y_tmp = y_tmp[y_tmp]
-        X_new = [0, 0, 0, 0]
-        for ind,y in enumerate(y_tmp):
-            X_new[y] = X_test[ind]
-        orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
-        orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
-        orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)
-        fig = plt.figure()
-        plt.imshow(orig_img.squeeze())
-        fig.show()
+        # X_test = np.array(Xd[pic])
+        # y_tmp = np.array(Yd[pic]).astype(int)
+        # X_new = [0, 0, 0, 0]
+        # for ind,y in enumerate(y_tmp):
+        #     X_new[y] = X_test[ind]
+        # orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
+        # orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
+        # orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)
+        # fig = plt.figure()
+        # plt.imshow(orig_img.squeeze())
+        # fig.show()
 
     return np.array(X), np.array(Y)
 
@@ -122,8 +120,8 @@ def data_prep():
     # shrader()
     X, Y = data_transform()
 
-    # with open('data.pickle', 'wb') as handle:
-    #     pickle.dump((X, Y), handle)
+    with open('data.pickle', 'wb') as handle:
+        pickle.dump((X, Y), handle)
 
 
 if __name__ == '__main__':
