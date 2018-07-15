@@ -41,41 +41,47 @@ def data_transform():
     # update this number for 4X4 crop 2X2 or 5X5 crops.
     tiles_per_dim = 2
 
-    smin = 1010000
-    smax = 0
-
-    mwidth = []
-    mheight = []
-
-    widths = {}
-    heights = {}
-
-    for f in files:
-        im = cv2.imread(IM_DIR + f)
-        height = im.shape[0]
-        if height not in heights:
-            heights.update({height: 1})
-        else:
-            heights[height] += 1
-        width = im.shape[1]
-        if width not in widths:
-            widths.update({width: 1})
-        else:
-            widths[width] += 1
-        mwidth.append(width)
-        mheight.append(height)
-        s = height * width
-        if s > smax:
-            smax = s
-            fmax = f
-        if s < smin:
-            smin = s
-            fmin = f
+    # smin = 1010000
+    # smax = 0
+    #
+    # mwidth = []
+    # mheight = []
+    #
+    # widths = {}
+    # heights = {}
+    #
+    # for f in files:
+    #     im = cv2.imread(IM_DIR + f)
+    #     height = im.shape[0]
+    #     if height not in heights:
+    #         heights.update({height: 1})
+    #     else:
+    #         heights[height] += 1
+    #     width = im.shape[1]
+    #     if width not in widths:
+    #         widths.update({width: 1})
+    #     else:
+    #         widths[width] += 1
+    #     mwidth.append(width)
+    #     mheight.append(height)
+    #     s = height * width
+    #     if s > smax:
+    #         smax = s
+    #         fmax = f
+    #     if s < smin:
+    #         smin = s
+    #         fmin = f
 
     # print(np.median(mwidth))
     # print(np.median(mheight))
 
-    size = [int(np.median(mwidth)), int(np.median(mheight))]
+    # print('smin is ' + str(smin))
+    # print('min width is ' + str(np.min(mwidth)))
+    # print('min height is ' + str(np.min(mheight)))
+
+    # size = [int(np.median(mwidth)), int(np.median(mheight))]
+
+    size = [128, 96]
 
     Xd = {}
     Yd = {}
@@ -116,8 +122,8 @@ def data_transform():
 
 
 def data_prep():
-    # augment()
-    # shrader()
+    augment()
+    shrader()
     X, Y = data_transform()
 
     with open('data.pickle', 'wb') as handle:
