@@ -8,6 +8,9 @@ from keras.models import Model
 import pickle
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import keras.backend as K
+
+tiles_per_dim = 2
 
 with open('data.pickle', 'rb') as handle:
     X, Y = pickle.load(handle)
@@ -40,29 +43,14 @@ Y = None
 
 ## TODO: when finished, train with all dataset!!
 
-def sinkhorn_max(X, n_iter=10):
-    xshape = (int(np.sqrt(len(X))), int(np.sqrt(len(X))))
-    A = X.reshape(xshape)
-
+def sinkhorn_max(A, n_iter=5):
     for i in range(n_iter):
-        A = A / np.sum(A, axis=0)
-        A = A / np.sum(A, axis=1)[:, np.newaxis]
-
-    indices = []
-
-    for i in range(int(np.sqrt(len(X)))):
-        ind = np.argmax(A)
-        indices.append(ind)
-        mn = np.unravel_index(ind, (xshape))
-        A[mn[0], :] = 0
-        A[:, mn[1]] = 0
-
-    Y01 = np.zeros(X.shape)
-    Y01[indices] = 1
-    return Y01
+        A /= K.sum(A, axis=0, keepdims=True)
+        A /= K.sum(A, axis=1, keepdims=True)
+    return A
 
 
-sinkhorn_on = False
+sinkhorn_on = True
 kernel_size = (3, 3)
 weight_decay = 0.005
 dropout = 0.3
@@ -99,36 +87,31 @@ out = BatchNormalization()(x)
 modelCNN = Model(img_input, out)
 print(modelCNN.summary())
 
-x0 = Input(shape=image_shape)
-x1 = Input(shape=image_shape)
-x2 = Input(shape=image_shape)
-x3 = Input(shape=image_shape)
+x_in = []
+x_out = []
+for ind in range(2 ** tiles_per_dim):
+    x_in.append(Input(shape=image_shape))
+    x_out.append(modelCNN(x_in[ind]))
 
-x0_out = modelCNN(x0)
-x1_out = modelCNN(x1)
-x2_out = modelCNN(x2)
-x3_out = modelCNN(x3)
-
-concatenated = Concatenate()([x0_out, x1_out, x2_out, x3_out])
+concatenated = Concatenate()(x_out)
 y = Dropout(dropout)(concatenated)
 y = Dense(256, activation='relu', kernel_regularizer=regularizers.l2(weight_decay),
           kernel_initializer='glorot_uniform')(y)
 y = BatchNormalization()(y)
-final = Dense(16, activation='sigmoid', kernel_regularizer=regularizers.l2(weight_decay),
+final = Dense(4 ** tiles_per_dim, activation='sigmoid', kernel_regularizer=regularizers.l2(weight_decay),
               kernel_initializer='glorot_uniform')(y)
-final = Reshape((4, 4))(final)
+final = Reshape((2 ** tiles_per_dim, 2 ** tiles_per_dim))(final)
 if sinkhorn_on:
     final = Lambda(sinkhorn_max)(final)
-    final = Reshape((16, 1))(final)
 
-model = Model([x0, x1, x2, x3], final)
+model = Model(x_in, final)
 
 initial_lr = 0.01
 
 
 # drop decay
 def schedule(epoch):
-    return initial_lr * (0.1 ** (epoch // 50))
+    return initial_lr * (0.1 ** (epoch // 30))
 
 
 lr_decay_drop_cb = LearningRateScheduler(schedule)
@@ -140,17 +123,15 @@ print(model.summary())
 
 def data_generator(X_train, y_train, batch_size=128):
     while True:
-        '''SHUNIT TEST START'''
-
-        random_perm = np.array([np.random.permutation(4) for _ in range(batch_size)])
+        random_perm = np.array([np.random.permutation(2 ** tiles_per_dim) for _ in range(batch_size)])
         idx = np.random.randint(0, X_train.shape[0], batch_size)
         x_samples = X_train[idx, :]
         x_samples_rnd_perm = np.array([x_samples[i][random_perm[i]] for i in range(batch_size)])
         x_samples = x_samples_rnd_perm[:, :, :, :, np.newaxis]
-        x = [x_samples[:, 0], x_samples[:, 1], x_samples[:, 2], x_samples[:, 3]]
+        x = [x_samples[:, i] for i in range(x_samples.shape[1])]
         y = y_train[idx]
         y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
-        y = keras.utils.to_categorical(y_rnd_perm, 4)
+        y = keras.utils.to_categorical(y_rnd_perm, 2 ** tiles_per_dim)
         # for x_show, y_show in zip(x_samples,y):
         #     orig_img_1 = np.concatenate((x_show[0], x_show[1]), axis=1)
         #     orig_img_2 = np.concatenate((x_show[2], x_show[3]), axis=1)
@@ -160,20 +141,6 @@ def data_generator(X_train, y_train, batch_size=128):
         #     fig.show()
         #     print(y_show)
         yield x, y
-
-        '''SHUNIT TEST END'''
-
-        # random_perm = np.array([np.random.permutation(4) for _ in range(batch_size)])
-        # idx = np.random.randint(0, X_train.shape[0], batch_size)
-        # x_samples = X_train[idx, :]
-        # x_samples_rnd_perm = np.array([x_samples[i][random_perm[i]] for i in range(batch_size)])
-        # x_samples = x_samples_rnd_perm[:, :, :, :, np.newaxis]
-        # x = [x_samples[:, 0], x_samples[:, 1], x_samples[:, 2], x_samples[:, 3]]
-        # y = y_train[idx]
-        # y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
-        # y = keras.utils.to_categorical(y_rnd_perm, 4)
-        # y = np.reshape(y, (y.shape[0], 16))
-        # yield x, y
 
 
 batch_size = 64
@@ -185,7 +152,7 @@ history = model.fit_generator(generator=datagen,
                               steps_per_epoch=X_train.shape[0] // batch_size,
                               validation_data=vdatagen,
                               validation_steps=X_test.shape[0] // batch_size,
-                              epochs=15,
+                              epochs=50,
                               callbacks=[lr_decay_drop_cb])
 
 # summarize history for accuracy
@@ -205,4 +172,4 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
-model.save('test.h5')
+model.save('test_50ep_sinkhorn.h5')

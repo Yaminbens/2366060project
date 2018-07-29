@@ -6,6 +6,7 @@ from shrader_public import shrader
 import pickle
 import matplotlib.pyplot as plt
 
+
 def augment():
     IM_DIR = "project/images/"
     SAVE_DIR = "project/allAug/"
@@ -21,16 +22,10 @@ def augment():
                 new_im_x = image.transpose(Image.FLIP_LEFT_RIGHT)
                 new_im_y = image.transpose(Image.FLIP_TOP_BOTTOM)
                 new_im_xy = image.transpose(Image.FLIP_TOP_BOTTOM).transpose(Image.FLIP_LEFT_RIGHT)
-                # new_im_9 = image.transpose(Image.ROTATE_90)
-                # new_im_18 = image.transpose(Image.ROTATE_180)
-                # new_im_27 = image.transpose(Image.ROTATE_270)
 
                 new_im_x.save(SAVE_DIR + file[0:-5] + 'x' + file[-5:], image.format)
                 new_im_y.save(SAVE_DIR + file[0:-5] + 'y' + file[-5:], image.format)
                 new_im_xy.save(SAVE_DIR + file[0:-5] + 'xy' + file[-5:], image.format)
-                # new_im_9.save(SAVE_DIR + file[0:-5] + '9' + file[-5:], image.format)
-                # new_im_18.save(SAVE_DIR + file[0:-5] + '18' + file[-5:], image.format)
-                # new_im_27.save(SAVE_DIR + file[0:-5] + '27' + file[-5:], image.format)
 
 
 def data_transform():
@@ -65,12 +60,12 @@ def data_transform():
 
         X_test = np.array(Xd[pic])
         y_tmp = np.array(Yd[pic]).astype(int)
-        X_new = [0, 0, 0, 0]
-        for ind,y in enumerate(y_tmp):
+        X_new = [0 for _ in range(2 ** tiles_per_dim)]
+        for ind, y in enumerate(y_tmp):
             X_new[y] = X_test[ind]
 
         X.append(X_new)
-        Y.append([0, 1, 2, 3])
+        Y.append([i for i in range(2 ** tiles_per_dim)])
 
         # orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
         # orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
@@ -83,8 +78,8 @@ def data_transform():
 
 
 def data_prep():
-    # augment()
-    # shrader()
+    augment()
+    shrader()
     X, Y = data_transform()
 
     with open('data.pickle', 'wb') as handle:
