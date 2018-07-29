@@ -116,8 +116,8 @@ y = Dense(256, activation='relu', kernel_regularizer=regularizers.l2(weight_deca
 y = BatchNormalization()(y)
 final = Dense(16, activation='sigmoid', kernel_regularizer=regularizers.l2(weight_decay),
               kernel_initializer='glorot_uniform')(y)
+final = Reshape((4, 4))(final)
 if sinkhorn_on:
-    final = Reshape((4, 4))(final)
     final = Lambda(sinkhorn_max)(final)
     final = Reshape((16, 1))(final)
 
@@ -128,7 +128,7 @@ initial_lr = 0.01
 
 # drop decay
 def schedule(epoch):
-    return initial_lr * (0.1 ** (epoch // 30))
+    return initial_lr * (0.1 ** (epoch // 50))
 
 
 lr_decay_drop_cb = LearningRateScheduler(schedule)
@@ -140,6 +140,8 @@ print(model.summary())
 
 def data_generator(X_train, y_train, batch_size=128):
     while True:
+        '''SHUNIT TEST START'''
+
         random_perm = np.array([np.random.permutation(4) for _ in range(batch_size)])
         idx = np.random.randint(0, X_train.shape[0], batch_size)
         x_samples = X_train[idx, :]
@@ -149,11 +151,32 @@ def data_generator(X_train, y_train, batch_size=128):
         y = y_train[idx]
         y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
         y = keras.utils.to_categorical(y_rnd_perm, 4)
-        y = np.reshape(y, (y.shape[0], 16))
+        # for x_show, y_show in zip(x_samples,y):
+        #     orig_img_1 = np.concatenate((x_show[0], x_show[1]), axis=1)
+        #     orig_img_2 = np.concatenate((x_show[2], x_show[3]), axis=1)
+        #     orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)
+        #     fig = plt.figure()
+        #     plt.imshow(orig_img.squeeze())
+        #     fig.show()
+        #     print(y_show)
         yield x, y
 
+        '''SHUNIT TEST END'''
 
-batch_size = 128
+        # random_perm = np.array([np.random.permutation(4) for _ in range(batch_size)])
+        # idx = np.random.randint(0, X_train.shape[0], batch_size)
+        # x_samples = X_train[idx, :]
+        # x_samples_rnd_perm = np.array([x_samples[i][random_perm[i]] for i in range(batch_size)])
+        # x_samples = x_samples_rnd_perm[:, :, :, :, np.newaxis]
+        # x = [x_samples[:, 0], x_samples[:, 1], x_samples[:, 2], x_samples[:, 3]]
+        # y = y_train[idx]
+        # y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
+        # y = keras.utils.to_categorical(y_rnd_perm, 4)
+        # y = np.reshape(y, (y.shape[0], 16))
+        # yield x, y
+
+
+batch_size = 64
 
 datagen = data_generator(X_train, y_train, batch_size=batch_size)
 vdatagen = data_generator(X_test, y_test, batch_size=batch_size)
@@ -162,7 +185,7 @@ history = model.fit_generator(generator=datagen,
                               steps_per_epoch=X_train.shape[0] // batch_size,
                               validation_data=vdatagen,
                               validation_steps=X_test.shape[0] // batch_size,
-                              epochs=50,
+                              epochs=15,
                               callbacks=[lr_decay_drop_cb])
 
 # summarize history for accuracy
@@ -182,4 +205,4 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
-model.save('mod_50_0.3Drop_lrdrop20ep.h5')
+model.save('test.h5')

@@ -10,7 +10,7 @@ K.clear_session()
 with open('vdata.pickle', 'rb') as handle:
     X_test, y_test = pickle.load(handle)
 
-model = load_model('mod_50_0.3Drop_lrdrop20ep.h5')
+model = load_model('mod_200_0.3Drop_lrdrop50ep.h5')
 
 X_test = X_test[:, :, :, :, np.newaxis]
 x = [X_test[:, 0], X_test[:, 1], X_test[:, 2], X_test[:, 3]]
