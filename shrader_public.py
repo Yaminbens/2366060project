@@ -8,11 +8,11 @@ def shrader():
     y = []
 
     IM_DIR = "project/allAug/"
-    OUTPUT_DIR = "project/shraded/"
+    OUTPUT_DIR = "project/shraded4/"
     files = os.listdir(IM_DIR)
 
     # update this number for 4X4 crop 2X2 or 5X5 crops.
-    tiles_per_dim = 2
+    tiles_per_dim = 4
 
 
 

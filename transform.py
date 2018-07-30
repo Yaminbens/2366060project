@@ -29,12 +29,12 @@ def augment():
 
 
 def data_transform():
-    IM_DIR = "project/shraded/"
-    SAVE_DIR = "project/shraded_samesize/"
+    IM_DIR = "project/shraded4/"
+    SAVE_DIR = "project/shraded_samesize4/"
     files = os.listdir(IM_DIR)
 
     # update this number for 4X4 crop 2X2 or 5X5 crops.
-    tiles_per_dim = 2
+    tiles_per_dim = 4
 
     # Define size of each tile
     size = [120, 120]
