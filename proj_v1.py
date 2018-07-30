@@ -48,7 +48,6 @@ tiles_per_dim = 4
 with open('data' + str(tiles_per_dim) + '.pickle', 'rb') as handle:
     X, Y = pickle.load(handle)
 
-X = np.array(X).astype('float32') / 255
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
 X_train, X_test = normalize(X_train, X_test)
 
