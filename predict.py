@@ -6,9 +6,9 @@ import keras
 from keras import backend as K
 
 K.clear_session()
-tiles_per_dim = 2
+tiles_per_dim = 4
 
-with open('vdata.pickle', 'rb') as handle:
+with open('vdata' + str(tiles_per_dim) + '.pickle', 'rb') as handle:
     X_test, y_test = pickle.load(handle)
 
     random_perm = np.array([np.random.permutation(2 ** tiles_per_dim) for _ in range(X_test.shape[0])])
@@ -20,7 +20,7 @@ with open('vdata.pickle', 'rb') as handle:
     y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(y_test.shape[0])])
     y_test = keras.utils.to_categorical(y_rnd_perm, 2 ** tiles_per_dim)
 
-model = load_model('test_50ep.h5')
+model = load_model('test4.h5')
 
 # x = []
 # for dim in range(X_test.shape[1]):
@@ -34,33 +34,67 @@ test_preds = np.argmax(test_preds, axis=2)
 y_test = np.argmax(y_test, axis=2)
 
 
+if tiles_per_dim == 2:
+    num_examples = 15
+    idx = np.random.randint(0, X_test.shape[0], num_examples)
+    for i in idx:
+        X_test1 = np.array(X_test[i])
+        shape = X_test1[0].shape
+        y_tmp = np.array(y_test[i]).astype(int)
+        y_tmp_pred = np.array(test_preds[i]).astype(int)
 
-num_examples = 15
-idx = np.random.randint(0, X_test.shape[0], num_examples)
-for i in idx:
-    X_test1 = np.array(X_test[i])
-    shape = X_test1[0].shape
-    y_tmp = np.array(y_test[i]).astype(int)
-    y_tmp_pred = np.array(test_preds[i]).astype(int)
+        print(y_tmp)
+        print(y_tmp_pred)
 
-    print(y_tmp)
-    print(y_tmp_pred)
+        X_new = [np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)]
+        for ind, y in enumerate(y_tmp):
+            X_new[ind] = X_test1[ind]
+        orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
+        orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
+        orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)
+        X_new_pred = [np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)]
+        for ind, y in enumerate(y_tmp_pred):
+            X_new_pred[y] = X_test1[ind]
+        pred_img_1 = np.concatenate((X_new_pred[0], X_new_pred[1]), axis=1)
+        pred_img_2 = np.concatenate((X_new_pred[2], X_new_pred[3]), axis=1)
+        pred_img = np.concatenate((pred_img_1, pred_img_2), axis=0)
+        fig = plt.figure()
+        fig.add_subplot(1, 2, 1)
+        plt.imshow(orig_img.squeeze())
+        fig.add_subplot(1, 2, 2)
+        plt.imshow(pred_img.squeeze())
+        fig.show()
+else:
+    num_examples = 15
+    idx = np.random.randint(0, X_test.shape[0], num_examples)
+    for i in idx:
+        X_test1 = np.array(X_test[i])
+        shape = X_test1[0].shape
+        y_tmp = np.array(y_test[i]).astype(int)
+        y_tmp_pred = np.array(test_preds[i]).astype(int)
 
-    X_new = [np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)]
-    for ind, y in enumerate(y_tmp):
-        X_new[ind] = X_test1[ind]
-    orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
-    orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
-    orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)
-    X_new_pred = [np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)]
-    for ind, y in enumerate(y_tmp_pred):
-        X_new_pred[y] = X_test1[ind]
-    pred_img_1 = np.concatenate((X_new_pred[0], X_new_pred[1]), axis=1)
-    pred_img_2 = np.concatenate((X_new_pred[2], X_new_pred[3]), axis=1)
-    pred_img = np.concatenate((pred_img_1, pred_img_2), axis=0)
-    fig = plt.figure()
-    fig.add_subplot(1, 2, 1)
-    plt.imshow(orig_img.squeeze())
-    fig.add_subplot(1, 2, 2)
-    plt.imshow(pred_img.squeeze())
-    fig.show()
+        print(y_tmp)
+        print(y_tmp_pred)
+
+        X_new = [np.zeros(shape) for _ in range(y_test.shape[1])]
+        for ind, y in enumerate(y_tmp):
+            X_new[y] = X_test1[ind]
+        orig_img_1 = np.concatenate((X_new[0], X_new[1], X_new[2], X_new[3]), axis=1)
+        orig_img_2 = np.concatenate((X_new[4], X_new[5], X_new[6], X_new[7]), axis=1)
+        orig_img_3 = np.concatenate((X_new[8], X_new[9], X_new[10], X_new[11]), axis=1)
+        orig_img_4 = np.concatenate((X_new[12], X_new[13], X_new[14], X_new[15]), axis=1)
+        orig_img = np.concatenate((orig_img_1, orig_img_2, orig_img_3, orig_img_4), axis=0)
+        X_new_pred = [np.zeros(shape) for _ in range(y_test.shape[1])]
+        for ind, y in enumerate(y_tmp_pred):
+            X_new_pred[y] = X_test1[ind]
+        pred_img_1 = np.concatenate((X_new_pred[0], X_new_pred[1], X_new_pred[2], X_new_pred[3]), axis=1)
+        pred_img_2 = np.concatenate((X_new_pred[4], X_new_pred[5], X_new_pred[6], X_new_pred[7]), axis=1)
+        pred_img_3 = np.concatenate((X_new_pred[8], X_new_pred[9], X_new_pred[10], X_new_pred[11]), axis=1)
+        pred_img_4 = np.concatenate((X_new_pred[12], X_new_pred[13], X_new_pred[14], X_new_pred[15]), axis=1)
+        pred_img = np.concatenate((pred_img_1, pred_img_2, pred_img_3, pred_img_4), axis=0)
+        fig = plt.figure()
+        fig.add_subplot(1, 2, 1)
+        plt.imshow(orig_img.squeeze())
+        fig.add_subplot(1, 2, 2)
+        plt.imshow(pred_img.squeeze())
+        fig.show()

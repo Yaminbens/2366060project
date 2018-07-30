@@ -4,6 +4,13 @@ import cv2
 def predict(images):
     labels = []
 
+    for image in images:
+
+
+
+
+        labels.append(label)
+
     # here comes your code to predict the labels of the images
     return labels
 

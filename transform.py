@@ -28,13 +28,15 @@ def augment():
 
 
 def data_transform(tiles_per_dim):
-
     IM_DIR = "project/shraded" + str(tiles_per_dim) + "/"
     SAVE_DIR = "project/shraded_samesize" + str(tiles_per_dim) + "/"
     files = os.listdir(IM_DIR)
 
     # Define size of each tile
-    size = [120, 120]
+    if tiles_per_dim == 2:
+        size = [120, 120]
+    else:
+        size = [60, 60]
 
     Xd = {}
     Yd = {}
@@ -79,7 +81,7 @@ def data_prep():
     tiles_per_dim = 4
 
     # augment()
-    shrader(tiles_per_dim)
+    # shrader(tiles_per_dim)
     X, Y = data_transform(tiles_per_dim)
 
     with open('data' + str(tiles_per_dim) + '.pickle', 'wb') as handle:
