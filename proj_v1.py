@@ -50,9 +50,9 @@ def sinkhorn_max(A, n_iter=5):
     return A
 
 
-sinkhorn_on = True
+sinkhorn_on = False
 kernel_size = (3, 3)
-weight_decay = 0.005
+weight_decay = 0.01
 dropout = 0.3
 
 img_input = Input(shape=image_shape)
@@ -111,7 +111,7 @@ initial_lr = 0.01
 
 # drop decay
 def schedule(epoch):
-    return initial_lr * (0.1 ** (epoch // 30))
+    return initial_lr * (0.1 ** (epoch // 35))
 
 
 lr_decay_drop_cb = LearningRateScheduler(schedule)
@@ -152,7 +152,7 @@ history = model.fit_generator(generator=datagen,
                               steps_per_epoch=X_train.shape[0] // batch_size,
                               validation_data=vdatagen,
                               validation_steps=X_test.shape[0] // batch_size,
-                              epochs=50,
+                              epochs=70,
                               callbacks=[lr_decay_drop_cb])
 
 # summarize history for accuracy
