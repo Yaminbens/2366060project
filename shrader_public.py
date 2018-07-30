@@ -1,18 +1,18 @@
 import cv2
 import os
 
-def shrader():
+def shrader(tiles_per_dim):
 
     Xa = []
     Xb = []
     y = []
 
     IM_DIR = "project/allAug/"
-    OUTPUT_DIR = "project/shraded4/"
+    OUTPUT_DIR = "project/shraded" + str(tiles_per_dim) + "/"
     files = os.listdir(IM_DIR)
 
     # update this number for 4X4 crop 2X2 or 5X5 crops.
-    tiles_per_dim = 4
+    # tiles_per_dim = 4
 
 
 
@@ -29,7 +29,7 @@ def shrader():
             for w in range(tiles_per_dim):
 
                 crop = im[h*frac_h:(h+1)*frac_h,w*frac_w:(w+1)*frac_w]
-                cv2.imwrite(OUTPUT_DIR+f[:-4]+"_{}.jpg".format(i),crop)
+                cv2.imwrite(OUTPUT_DIR+f[:-4]+"_{:02}.jpg".format(i),crop)
                 i=i+1
 
 

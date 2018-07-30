@@ -10,12 +10,12 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import keras.backend as K
 
-tiles_per_dim = 2
+tiles_per_dim = 4
 
-with open('data.pickle', 'rb') as handle:
+with open('data' + str(tiles_per_dim) + '.pickle', 'rb') as handle:
     X, Y = pickle.load(handle)
 
-X = X.astype('float32') / 255
+X = np.array(X).astype('float32') / 255
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
 
@@ -52,7 +52,7 @@ def sinkhorn_max(A, n_iter=5):
 
 sinkhorn_on = False
 kernel_size = (3, 3)
-weight_decay = 0.01
+weight_decay = 0.005
 dropout = 0.3
 
 img_input = Input(shape=image_shape)
@@ -172,4 +172,4 @@ plt.xlabel('epoch')
 plt.legend(['train', 'test'], loc='upper left')
 plt.show()
 
-model.save('test_50ep_sinkhorn.h5')
+model.save('test' + str(tiles_per_dim) + '.h5')
