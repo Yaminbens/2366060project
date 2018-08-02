@@ -4,7 +4,7 @@ from keras.callbacks import LearningRateScheduler
 import pickle
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-from models import model
+from models import model, modelb
 
 
 # normalize - samplewise for CNN and featurewis for fullyconnected
@@ -43,7 +43,7 @@ def schedule(epoch):
     return initial_lr * (0.1 ** (epoch // 50))
 
 
-tiles_per_dim = 2
+tiles_per_dim = 4
 
 with open('data' + str(tiles_per_dim) + '.pickle', 'rb') as handle:
     X, Y = pickle.load(handle)
@@ -70,7 +70,8 @@ initial_lr = 0.005
 epochs = 30
 batch_size = 64
 
-model = model(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)
+model = modelb(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)
+
 model.compile(loss='categorical_crossentropy',
               optimizer=keras.optimizers.SGD(lr=initial_lr, momentum=0.9, nesterov=True),
               metrics=['accuracy'])
