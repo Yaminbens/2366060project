@@ -5,6 +5,7 @@ import pickle
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from models import model, modelb
+import cv2
 
 
 # normalize - samplewise for CNN and featurewis for fullyconnected
@@ -16,30 +17,49 @@ def normalize(X_train, X_test):
     return X_train, X_test
 
 
-def data_generator(x_in, batch_size=128):
+def data_generator(X, batch_size=128):
     while True:
         random_perm = np.array([np.random.permutation(2 ** tiles_per_dim) for _ in range(batch_size)])
-        idx = np.random.randint(0, x_in.shape[0], batch_size)
+        idx = np.random.choice(range(len(X)), batch_size, replace=False)
+
+        Xd = {}
+        Yd = {}
 
         for i in idx:
+            for j in range(2 ** tiles_per_dim):
+                if j < 10:
+                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +'0'+j+'jpg', cv2.IMREAD_GRAYSCALE)
+                else:
+                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +j+'jpg', cv2.IMREAD_GRAYSCALE)
+                if X[i] not in Xd:
+                    Xd.update({X[i]: []})
+                    Yd.update({X[i]: []})
+                Xd[X[i]].append(np.array(img))
+                Yd[X[i]].append(j)
+
+        X = []
+        Y = []
+
+        for pic in Xd:
+
+            X_test = np.array(Xd[pic])
+            y_tmp = np.array(Yd[pic]).astype(int)
+            X_new = [0 for _ in range(2 ** tiles_per_dim)]
+            for ind, y in enumerate(y_tmp):
+                X_new[y] = X_test[ind]
+
+            X.append(np.array(X_new))
+            Y.append([i for i in range(2 ** tiles_per_dim)])
 
 
 
-        x_samples = x_in[idx, :]
+        x_samples = X
         x_samples_rnd_perm = np.array([x_samples[i][random_perm[i]] for i in range(batch_size)])
         x_samples = x_samples_rnd_perm[:, :, :, :, np.newaxis]
         x = [x_samples[:, i] for i in range(x_samples.shape[1])]
-        y = y_in[idx]
+        y = Y[idx]
         y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
         y = keras.utils.to_categorical(y_rnd_perm, 2 ** tiles_per_dim)
-        # for x_show, y_show in zip(x_samples,y):
-        #     orig_img_1 = np.concatenate((x_show[0], x_show[1]), axis=1)
-        #     orig_img_2 = np.concatenate((x_show[2], x_show[3]), axis=1)
-        #     orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)
-        #     fig = plt.figure()
-        #     plt.imshow(orig_img.squeeze())
-        #     fig.show()
-        #     print(y_show)
         yield x, y
 
 
