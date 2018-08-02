@@ -36,57 +36,38 @@ def data_transform(tiles_per_dim):
     if tiles_per_dim == 2:
         size = [120, 120]
     if tiles_per_dim == 4:
-        size = [60, 60]
+        size = [223, 223]
 
-    Xd = {}
-    Yd = {}
+    Xd = []
 
     for file in files:
         img = cv2.imread(IM_DIR + file, cv2.IMREAD_GRAYSCALE)
         cover = cv2.resize(img, (size[0], size[1]), interpolation=cv2.INTER_AREA)
-        if file[0:-6] not in Xd:
-            Xd.update({file[0:-6]: []})
-            Yd.update({file[0:-6]: []})
-        Xd[file[0:-6]].append(np.array(cover))
-        Yd[file[0:-6]].append(file[-6:-4])
+        Xd.append([file[0:-6]])
         cv2.imwrite(SAVE_DIR + file, cover)
 
-    X = []
-    Y = []
 
-    for pic in Xd:
-        # print(pic)
-
-        X_test = np.array(Xd[pic])
-        y_tmp = np.array(Yd[pic]).astype(int)
-        X_new = [0 for _ in range(2 ** tiles_per_dim)]
-        for ind, y in enumerate(y_tmp):
-            X_new[y] = X_test[ind]
-
-        X.append(np.array(X_new))
-        Y.append([i for i in range(2 ** tiles_per_dim)])
-
-        # orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
-        # orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
-        # orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)
-        # fig = plt.figure()
-        # plt.imshow(orig_img.squeeze())
-        # fig.show()
-
-    return np.array(X), np.array(Y)
+    return np.array(Xd)
 
 
 def data_prep():
     # update this number for 4X4 crop 2X2 or 5X5 crops.
     tiles_per_dim = 4
 
-    # augment()
-    # shrader(tiles_per_dim)
-    X, Y = data_transform(tiles_per_dim)
+    X = data_transform(tiles_per_dim)
 
-    with open('data' + str(tiles_per_dim) + '.pickle', 'wb') as handle:
-        pickle.dump((X, Y), handle)
+    with open('files_names' + '.pickle', 'wb') as handle:
+        pickle.dump(X, handle)
+
+def data_shrade():
+    # update this number for 4X4 crop 2X2 or 5X5 crops.
+    tiles_per_dim = 4
+
+    augment()
+    shrader(tiles_per_dim)
+
 
 
 if __name__ == '__main__':
+    # data_shrade()
     data_prep()
