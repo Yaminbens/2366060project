@@ -3,6 +3,7 @@ from keras.layers import Dense, Dropout, Conv2D, BatchNormalization, MaxPool2D, 
 from keras import regularizers
 from keras.models import Model
 import keras.backend as K
+from keras.applications.resnet50 import ResNet50
 
 def sinkhorn_max(A, n_iter=5):
     for i in range(n_iter):
@@ -41,10 +42,8 @@ def model(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout):
     return model
 
 def modelb(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout):
-    if tiles_per_dim == 2:
-        modelCNN = model2(image_shape, weight_decay)
-    else:
-        modelCNN = model4(image_shape, weight_decay)
+
+    modelCNN = resNetModel()
 
     print(modelCNN.summary())
 
@@ -52,11 +51,12 @@ def modelb(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout):
     x_out = []
     for ind in range(2 ** tiles_per_dim):
         x_in.append(Input(shape=image_shape))
-        x_out.append(modelCNN(x_in[ind]))
+        x_out.append(Flatten()(modelCNN(x_in[ind])))
 
     concatenated = Concatenate()(x_out)
     y = Dropout(dropout)(concatenated)
-    y = Dense(256, activation='relu', kernel_regularizer=regularizers.l2(weight_decay),
+    # y = Flatten()(y)
+    y = Dense(8 ** tiles_per_dim, activation='relu', kernel_regularizer=regularizers.l2(weight_decay),
               kernel_initializer='glorot_uniform')(y)
     y = BatchNormalization()(y)
     y = Dropout(dropout)(y)
@@ -120,10 +120,7 @@ def model4(image_shape, weight_decay):
     out = BatchNormalization()(x)
     modelCNN = Model(img_input, out)
     return modelCNN
-#
-# def resNetModel():
-#     model = ResNet50(include_top=False, weights='imagenet')  # Functional API
-#     top_model = TopModel(model.output_shape[1:])
-#     top_model.load_weights("top_model.hdf5")
-#     # Stack top_model on top
-#     return Model(input=model.input, output=top_model(model.output))
+
+def resNetModel():
+    model = ResNet50(include_top=False, weights=None)  # Functional API
+    return Model(model.input, model.layers[-2].output)

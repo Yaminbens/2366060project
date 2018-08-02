@@ -48,7 +48,7 @@ def data_generator(Xnames, batch_size=128):
             y_tmp = np.array(Yd[pic]).astype(int)
             X_new = [0 for _ in range(2 ** tiles_per_dim)]
             for ind, y in enumerate(y_tmp):
-                X_new[y] = X_test[ind]
+                X_new[y] = np.repeat(X_test[ind], 3, -1)
 
             X.append(np.array(X_new))
             Y.append([i for i in range(2 ** tiles_per_dim)])
@@ -84,7 +84,7 @@ X_train = [x for i,x in enumerate(Xnames) if i not in test_idxs]
 train_size = len(X_train)
 test_size = len(X_test)
 
-image_shape = (223,223, 1)
+image_shape = (223,223, 3)
 
 
 ## TODO: when finished, train with all dataset!!
