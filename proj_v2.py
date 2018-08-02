@@ -76,7 +76,8 @@ with open('files_names.pickle', 'rb') as handle:
 test_idxs = np.random.randint(0, len(X), int(0.1*len(X)))
 X_test = X[test_idxs]
 X_train = [x for i,x in enumerate(X) if i not in test_idxs]
-
+train_size = len(X_train)
+test_size = len(X_test)
 
 image_shape = (223,223, 1)
 
@@ -103,9 +104,9 @@ datagen = data_generator(X_train, batch_size=batch_size)
 vdatagen = data_generator(X_test, batch_size=batch_size)
 
 history = model.fit_generator(generator=datagen,
-                              steps_per_epoch=X_train.shape[0] // batch_size,
+                              steps_per_epoch=train_size // batch_size,
                               validation_data=vdatagen,
-                              validation_steps=X_test.shape[0] // batch_size,
+                              validation_steps=test_size // batch_size,
                               epochs=epochs,
                               callbacks=[LearningRateScheduler(schedule)])
 
