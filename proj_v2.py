@@ -28,9 +28,9 @@ def data_generator(X, batch_size=128):
         for i in idx:
             for j in range(2 ** tiles_per_dim):
                 if j < 10:
-                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +'0'+j+'jpg', cv2.IMREAD_GRAYSCALE)
+                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +'0'+str(j)+'jpg', cv2.IMREAD_GRAYSCALE)
                 else:
-                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +j+'jpg', cv2.IMREAD_GRAYSCALE)
+                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +str(j)+'jpg', cv2.IMREAD_GRAYSCALE)
                 if X[i] not in Xd:
                     Xd.update({X[i]: []})
                     Yd.update({X[i]: []})

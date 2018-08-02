@@ -43,7 +43,7 @@ def data_transform(tiles_per_dim):
     for file in files:
         img = cv2.imread(IM_DIR + file, cv2.IMREAD_GRAYSCALE)
         cover = cv2.resize(img, (size[0], size[1]), interpolation=cv2.INTER_AREA)
-        Xd.append([file[0:-6]])
+        Xd.append(file[0:-6])
         cv2.imwrite(SAVE_DIR + file, cover)
 
 
@@ -63,11 +63,11 @@ def data_shrade():
     # update this number for 4X4 crop 2X2 or 5X5 crops.
     tiles_per_dim = 4
 
-    augment()
+    # augment()
     shrader(tiles_per_dim)
 
 
 
 if __name__ == '__main__':
-    # data_shrade()
+    data_shrade()
     data_prep()
