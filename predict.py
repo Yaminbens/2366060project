@@ -6,7 +6,7 @@ import keras
 from keras import backend as K
 
 K.clear_session()
-tiles_per_dim = 4
+tiles_per_dim = 2
 
 with open('vdata' + str(tiles_per_dim) + '.pickle', 'rb') as handle:
     X_test, y_test = pickle.load(handle)
@@ -20,7 +20,7 @@ with open('vdata' + str(tiles_per_dim) + '.pickle', 'rb') as handle:
     y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(y_test.shape[0])])
     y_test = keras.utils.to_categorical(y_rnd_perm, 2 ** tiles_per_dim)
 
-model = load_model('test4.h5')
+model = load_model('test.h5')
 
 # x = []
 # for dim in range(X_test.shape[1]):
@@ -48,7 +48,7 @@ if tiles_per_dim == 2:
 
         X_new = [np.zeros(shape), np.zeros(shape), np.zeros(shape), np.zeros(shape)]
         for ind, y in enumerate(y_tmp):
-            X_new[ind] = X_test1[ind]
+            X_new[y] = X_test1[ind]
         orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
         orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
         orig_img = np.concatenate((orig_img_1, orig_img_2), axis=0)

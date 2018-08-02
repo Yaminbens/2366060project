@@ -15,6 +15,8 @@ def predict(images):
         size = [60, 60]
         model = load_model('model5.h5')
 
+    X = np.array(X).astype('float32') / 255
+
     mean = 130
     std = 80
     images = (np.array(images) - mean) / (std + 1e-7)

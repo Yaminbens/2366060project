@@ -91,3 +91,10 @@ def model4(image_shape, weight_decay):
     out = BatchNormalization()(x)
     modelCNN = Model(img_input, out)
     return modelCNN
+#
+# def resNetModel():
+#     model = ResNet50(include_top=False, weights='imagenet')  # Functional API
+#     top_model = TopModel(model.output_shape[1:])
+#     top_model.load_weights("top_model.hdf5")
+#     # Stack top_model on top
+#     return Model(input=model.input, output=top_model(model.output))

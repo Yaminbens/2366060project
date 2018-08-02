@@ -16,15 +16,15 @@ def normalize(X_train, X_test):
     return X_train, X_test
 
 
-def data_generator(X_train, y_train, batch_size=128):
+def data_generator(x_in, y_in, batch_size=128):
     while True:
         random_perm = np.array([np.random.permutation(2 ** tiles_per_dim) for _ in range(batch_size)])
-        idx = np.random.randint(0, X_train.shape[0], batch_size)
-        x_samples = X_train[idx, :]
+        idx = np.random.randint(0, x_in.shape[0], batch_size)
+        x_samples = x_in[idx, :]
         x_samples_rnd_perm = np.array([x_samples[i][random_perm[i]] for i in range(batch_size)])
         x_samples = x_samples_rnd_perm[:, :, :, :, np.newaxis]
         x = [x_samples[:, i] for i in range(x_samples.shape[1])]
-        y = y_train[idx]
+        y = y_in[idx]
         y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
         y = keras.utils.to_categorical(y_rnd_perm, 2 ** tiles_per_dim)
         # for x_show, y_show in zip(x_samples,y):
@@ -43,11 +43,13 @@ def schedule(epoch):
     return initial_lr * (0.1 ** (epoch // 50))
 
 
-tiles_per_dim = 4
+tiles_per_dim = 2
 
 with open('data' + str(tiles_per_dim) + '.pickle', 'rb') as handle:
     X, Y = pickle.load(handle)
 
+
+X = np.array(X).astype('float32') / 255
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.1)
 X_train, X_test = normalize(X_train, X_test)
 
@@ -62,10 +64,10 @@ Y = None
 ## TODO: when finished, train with all dataset!!
 
 sinkhorn_on = False
-weight_decay = 0.005
+weight_decay = 0.01
 dropout = 0.3
-initial_lr = 0.01
-epochs = 45
+initial_lr = 0.005
+epochs = 30
 batch_size = 64
 
 model = model(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)

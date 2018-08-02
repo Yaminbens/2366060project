@@ -139,7 +139,7 @@ def plot_dissimilarity_table(X, Y):
     plt.show()
 
 def test_loss_and_imshow():
-    with open('vdata.pickle', 'rb') as handle:
+    with open('vdata2.pickle', 'rb') as handle:
         X_test, y_test = pickle.load(handle)
 
     shapex = X_test.shape
