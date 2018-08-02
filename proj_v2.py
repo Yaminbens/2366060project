@@ -17,10 +17,10 @@ def normalize(X_train, X_test):
     return X_train, X_test
 
 
-def data_generator(X, batch_size=128):
+def data_generator(Xnames, batch_size=128):
     while True:
         random_perm = np.array([np.random.permutation(2 ** tiles_per_dim) for _ in range(batch_size)])
-        idx = np.random.choice(range(len(X)), batch_size, replace=False)
+        idx = np.random.choice(range(len(Xnames)), batch_size, replace=False)
 
         Xd = {}
         Yd = {}
@@ -28,14 +28,16 @@ def data_generator(X, batch_size=128):
         for i in idx:
             for j in range(2 ** tiles_per_dim):
                 if j < 10:
-                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +'0'+str(j)+'jpg', cv2.IMREAD_GRAYSCALE)
+                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + Xnames[i] +'0'+str(j)+'.jpg', cv2.IMREAD_GRAYSCALE)
                 else:
-                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + X[i] +str(j)+'jpg', cv2.IMREAD_GRAYSCALE)
-                if X[i] not in Xd:
-                    Xd.update({X[i]: []})
-                    Yd.update({X[i]: []})
-                Xd[X[i]].append(np.array(img))
-                Yd[X[i]].append(j)
+                    img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "/" + Xnames[i] +str(j)+'.jpg', cv2.IMREAD_GRAYSCALE)
+                # if img is None:
+                #     print("NONE")
+                if Xnames[i] not in Xd:
+                    Xd.update({Xnames[i]: []})
+                    Yd.update({Xnames[i]: []})
+                Xd[Xnames[i]].append(np.array(img))
+                Yd[Xnames[i]].append(j)
 
         X = []
         Y = []
@@ -53,11 +55,14 @@ def data_generator(X, batch_size=128):
 
 
 
-        x_samples = X
+        x_samples = np.asarray(X)
+        # print(x_samples.shape)
+        # print(x_samples[0].shape)
+        # print(random_perm[0].shape)
         x_samples_rnd_perm = np.array([x_samples[i][random_perm[i]] for i in range(batch_size)])
         x_samples = x_samples_rnd_perm[:, :, :, :, np.newaxis]
         x = [x_samples[:, i] for i in range(x_samples.shape[1])]
-        y = Y[idx]
+        y = np.asarray(Y)
         y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
         y = keras.utils.to_categorical(y_rnd_perm, 2 ** tiles_per_dim)
         yield x, y
@@ -71,18 +76,16 @@ def schedule(epoch):
 tiles_per_dim = 4
 
 with open('files_names.pickle', 'rb') as handle:
-    X = pickle.load(handle)
+    Xnames = pickle.load(handle)
 
-test_idxs = np.random.randint(0, len(X), int(0.1*len(X)))
-X_test = X[test_idxs]
-X_train = [x for i,x in enumerate(X) if i not in test_idxs]
+test_idxs = np.random.randint(0, len(Xnames), int(0.1*len(Xnames)))
+X_test = np.asarray(Xnames)[test_idxs]
+X_train = [x for i,x in enumerate(Xnames) if i not in test_idxs]
 train_size = len(X_train)
 test_size = len(X_test)
 
 image_shape = (223,223, 1)
 
-X = None
-Y = None
 
 ## TODO: when finished, train with all dataset!!
 
@@ -91,7 +94,7 @@ weight_decay = 0.01
 dropout = 0.3
 initial_lr = 0.005
 epochs = 30
-batch_size = 64
+batch_size = 16
 
 model = modelb(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)
 

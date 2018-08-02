@@ -29,7 +29,7 @@ def augment():
 
 def data_transform(tiles_per_dim):
     IM_DIR = "project/shraded" + str(tiles_per_dim) + "/"
-    SAVE_DIR = "project/shraded_samesize" + str(tiles_per_dim) + "/"
+    SAVE_DIR = "project/shraded_samesize" + str(tiles_per_dim) + "b/"
     files = os.listdir(IM_DIR)
 
     # Define size of each tile
@@ -47,7 +47,7 @@ def data_transform(tiles_per_dim):
         cv2.imwrite(SAVE_DIR + file, cover)
 
 
-    return np.array(Xd)
+    return Xd
 
 
 def data_prep():
@@ -69,5 +69,5 @@ def data_shrade():
 
 
 if __name__ == '__main__':
-    data_shrade()
+    # data_shrade()
     data_prep()
