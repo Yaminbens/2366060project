@@ -64,13 +64,13 @@ Y = None
 ## TODO: when finished, train with all dataset!!
 
 sinkhorn_on = False
-weight_decay = 0.01
+weight_decay = 0.005
 dropout = 0.3
-initial_lr = 0.005
-epochs = 30
+initial_lr = 0.01
+epochs = 70
 batch_size = 64
 
-model = modelb(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)
+model = model(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)
 
 model.compile(loss='categorical_crossentropy',
               optimizer=keras.optimizers.SGD(lr=initial_lr, momentum=0.9, nesterov=True),

@@ -22,6 +22,9 @@ def data_generator(Xnames, batch_size=128):
         random_perm = np.array([np.random.permutation(2 ** tiles_per_dim) for _ in range(batch_size)])
         idx = np.random.choice(range(len(Xnames)), batch_size, replace=False)
 
+        while len(list(set([Xnames[i] for i in idx]))) is not batch_size:
+            idx = np.random.choice(range(len(Xnames)), batch_size, replace=False)
+
         Xd = {}
         Yd = {}
 
@@ -31,8 +34,6 @@ def data_generator(Xnames, batch_size=128):
                     img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "b/" + Xnames[i] +'0'+str(j)+'.jpg', cv2.IMREAD_GRAYSCALE)
                 else:
                     img = cv2.imread("project/shraded_samesize" + str(tiles_per_dim) + "b/" + Xnames[i] +str(j)+'.jpg', cv2.IMREAD_GRAYSCALE)
-                # if img is None:
-                #     print("NONE")
                 if Xnames[i] not in Xd:
                     Xd.update({Xnames[i]: []})
                     Yd.update({Xnames[i]: []})
@@ -42,18 +43,21 @@ def data_generator(Xnames, batch_size=128):
         X = []
         Y = []
 
+        assert(len(Xd) == batch_size)
+
         for pic in Xd:
 
             X_test = np.array(Xd[pic])
             y_tmp = np.array(Yd[pic]).astype(int)
             X_new = [0 for _ in range(2 ** tiles_per_dim)]
             for ind, y in enumerate(y_tmp):
-                X_new[y] = np.repeat(X_test[ind], 3, -1)
+                X_new[y] = X_test[ind]
 
             X.append(np.array(X_new))
             Y.append([i for i in range(2 ** tiles_per_dim)])
 
-
+        Xd = None
+        Yd = None
 
         x_samples = np.asarray(X)
         # print(x_samples.shape)
@@ -65,6 +69,7 @@ def data_generator(Xnames, batch_size=128):
         y = np.asarray(Y)
         y_rnd_perm = np.array([y[i][random_perm[i]] for i in range(batch_size)])
         y = keras.utils.to_categorical(y_rnd_perm, 2 ** tiles_per_dim)
+
         yield x, y
 
 
@@ -84,19 +89,19 @@ X_train = [x for i,x in enumerate(Xnames) if i not in test_idxs]
 train_size = len(X_train)
 test_size = len(X_test)
 
-image_shape = (223,223, 3)
+image_shape = (128, 128, 1)
 
 
 ## TODO: when finished, train with all dataset!!
 
 sinkhorn_on = False
-weight_decay = 0.01
-dropout = 0.3
-initial_lr = 0.005
+weight_decay = 0.005
+dropout = 0.1
+initial_lr = 0.01
 epochs = 30
-batch_size = 16
+batch_size = 40
 
-model = modelb(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)
+model = model(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout)
 
 model.compile(loss='categorical_crossentropy',
               optimizer=keras.optimizers.SGD(lr=initial_lr, momentum=0.9, nesterov=True),

@@ -34,9 +34,9 @@ def data_transform(tiles_per_dim):
 
     # Define size of each tile
     if tiles_per_dim == 2:
-        size = [120, 120]
+        size = [128, 128]
     if tiles_per_dim == 4:
-        size = [223, 223]
+        size = [128, 128]
 
     Xd = []
 
@@ -47,7 +47,7 @@ def data_transform(tiles_per_dim):
         cv2.imwrite(SAVE_DIR + file, cover)
 
 
-    return Xd
+    return list(set(Xd))
 
 
 def data_prep():
