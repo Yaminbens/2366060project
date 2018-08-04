@@ -7,19 +7,19 @@ import numpy as np
 def predict(images):
     if len(images) == 4:
         size = [120, 120]
-        model = load_model('model2.h5')
+        model = load_model('test2.h5')
     elif len(images) == 16:
         size = [60, 60]
         model = load_model('test4.h5')
     elif len(images) == 25:
         size = [60, 60]
-        model = load_model('model5.h5')
+        model = load_model('test5.h5')
 
-    X = np.array(X).astype('float32') / 255
-
-    mean = 130
-    std = 80
-    images = (np.array(images) - mean) / (std + 1e-7)
+    images = np.array(images).astype('float32') / 255
+    #
+    # mean = 130
+    # std = 80
+    # images = (np.array(images) - mean) / (std + 1e-7)
 
     x = []
     for i in range(images.shape[0]):
@@ -42,6 +42,3 @@ def evaluate(file_dir='example/'):
 
     Y = predict(images)
     return Y
-
-
-print(evaluate())

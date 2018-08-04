@@ -23,7 +23,7 @@ def model(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout):
 
     x_in = []
     x_out = []
-    for ind in range(2 ** tiles_per_dim):
+    for ind in range(tiles_per_dim ** 2):
         x_in.append(Input(shape=image_shape))
         x_out.append(modelCNN(x_in[ind]))
 
@@ -34,9 +34,9 @@ def model(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout):
     y = BatchNormalization()(y)
     # y = Dropout(dropout)(y)TypeError: softmax() got an unexpected keyword argument 'axis'
 
-    final = Dense(4 ** tiles_per_dim, activation='sigmoid', kernel_regularizer=regularizers.l2(weight_decay),
+    final = Dense(tiles_per_dim ** 4, activation='sigmoid', kernel_regularizer=regularizers.l2(weight_decay),
                   kernel_initializer='glorot_uniform')(y)
-    final = Reshape((2 ** tiles_per_dim, 2 ** tiles_per_dim))(final)
+    final = Reshape((tiles_per_dim ** 2, tiles_per_dim ** 2))(final)
     if sinkhorn_on:
         final = Lambda(sinkhorn_max)(final)
 
@@ -62,7 +62,7 @@ def modelb(tiles_per_dim, image_shape, sinkhorn_on, weight_decay, dropout):
     y = Dense(8 ** tiles_per_dim, activation='relu', kernel_regularizer=regularizers.l2(weight_decay),
               kernel_initializer='glorot_uniform')(y)
     y = BatchNormalization()(y)
-    y = Dropout(dropout)(y)
+    # y = Dropout(dropout)(y)
     final = Dense(4 ** tiles_per_dim, activation='sigmoid', kernel_regularizer=regularizers.l2(weight_decay),
                   kernel_initializer='glorot_uniform')(y)
     final = Reshape((2 ** tiles_per_dim, 2 ** tiles_per_dim))(final)
@@ -94,17 +94,7 @@ def model2(image_shape, weight_decay):
                kernel_regularizer=regularizers.l2(weight_decay))(x)
     x = BatchNormalization()(x)
     x = MaxPool2D()(x)
-    x = Conv2D(512, (4, 4), padding='same', activation='relu',
-               kernel_regularizer=regularizers.l2(weight_decay))(x)
-    x = BatchNormalization()(x)
-    x = MaxPool2D()(x)
-    x = Conv2D(512, (4, 4), padding='same', activation='relu',
-               kernel_regularizer=regularizers.l2(weight_decay))(x)
-    x = BatchNormalization()(x)
-    x = MaxPool2D()(x)
-    x = Flatten()(x)
-    x = Dense(128, activation='relu', kernel_regularizer=regularizers.l2(weight_decay))(x)
-    out = BatchNormalization()(x)
+    out = Flatten()(x)
     modelCNN = Model(img_input, out)
     return modelCNN
 

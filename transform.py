@@ -35,7 +35,7 @@ def data_transform(tiles_per_dim):
     # Define size of each tile
     if tiles_per_dim == 2:
         size = [120, 120]
-    if tiles_per_dim == 4:
+    else:
         size = [60, 60]
 
     Xd = {}
@@ -49,7 +49,7 @@ def data_transform(tiles_per_dim):
             Yd.update({file[0:-6]: []})
         Xd[file[0:-6]].append(np.array(cover))
         Yd[file[0:-6]].append(file[-6:-4])
-        cv2.imwrite(SAVE_DIR + file, cover)
+        # cv2.imwrite(SAVE_DIR + file, cover)
 
     X = []
     Y = []
@@ -59,12 +59,12 @@ def data_transform(tiles_per_dim):
 
         X_test = np.array(Xd[pic])
         y_tmp = np.array(Yd[pic]).astype(int)
-        X_new = [0 for _ in range(2 ** tiles_per_dim)]
+        X_new = [0 for _ in range(tiles_per_dim ** 2)]
         for ind, y in enumerate(y_tmp):
             X_new[y] = X_test[ind]
 
         X.append(np.array(X_new))
-        Y.append([i for i in range(2 ** tiles_per_dim)])
+        Y.append([i for i in range(tiles_per_dim ** 2)])
 
         # orig_img_1 = np.concatenate((X_new[0], X_new[1]), axis=1)
         # orig_img_2 = np.concatenate((X_new[2], X_new[3]), axis=1)
@@ -78,10 +78,10 @@ def data_transform(tiles_per_dim):
 
 def data_prep():
     # update this number for 4X4 crop 2X2 or 5X5 crops.
-    tiles_per_dim = 4
+    tiles_per_dim = 5
 
     # augment()
-    # shrader(tiles_per_dim)
+    shrader(tiles_per_dim)
     X, Y = data_transform(tiles_per_dim)
 
     with open('data' + str(tiles_per_dim) + '.pickle', 'wb') as handle:
