@@ -42,3 +42,4 @@ def evaluate(file_dir='example/'):
 
     Y = predict(images)
     return Y
+
